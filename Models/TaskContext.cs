@@ -26,6 +26,7 @@ namespace EF_Fundamentals.Models
 
                 cat.Property(p => p.Name).IsRequired().HasMaxLength(150);
                 cat.Property(p => p.Description);
+                cat.Property(p => p.Weight);
             });
 
             modelBuilder.Entity<Task>(task =>
