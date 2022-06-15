@@ -12,10 +12,31 @@ var app = builder.Build();
 
 app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/dbconnection", async ([FromServices] TaskContext dbContext ) =>
+app.MapGet("/dbconnection", ([FromServices] TaskContext dbContext) =>
 {
     dbContext.Database.EnsureCreated();
     return Results.Ok("Database in memory: " + dbContext.Database.IsInMemory());
+});
+
+app.MapGet("api/tasks", ([FromServices] TaskContext dbContext) =>
+{
+    return Results.Ok(dbContext.tasks);
+});
+
+app.MapGet("api/task/priority", ([FromServices] TaskContext dbContext, int id) =>
+{
+    return Results.Ok(dbContext.tasks.Include(p => p.Category).Where(a => (int)a.PriorityTask == id));
+});
+
+app.MapPost("api/task/priority", async ([FromServices] TaskContext dbContext, [FromBody] EF_Fundamentals.Models.Task task) =>
+{
+    task.TaskId = Guid.NewGuid();
+    task.CreationDate = DateTime.Now;
+    await dbContext.tasks.AddAsync(task);
+    await dbContext.SaveChangesAsync();
+
+    return Results.Ok();
+    
 });
 
 app.Run();
