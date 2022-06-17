@@ -28,7 +28,7 @@ app.MapGet("api/task/priority", ([FromServices] TaskContext dbContext, int id) =
     return Results.Ok(dbContext.tasks.Include(p => p.Category).Where(a => (int)a.PriorityTask == id));
 });
 
-app.MapPost("api/task/priority", async ([FromServices] TaskContext dbContext, [FromBody] EF_Fundamentals.Models.Task task) =>
+app.MapPost("api/task", async ([FromServices] TaskContext dbContext, [FromBody] EF_Fundamentals.Models.Task task) =>
 {
     task.TaskId = Guid.NewGuid();
     task.CreationDate = DateTime.Now;
@@ -37,6 +37,42 @@ app.MapPost("api/task/priority", async ([FromServices] TaskContext dbContext, [F
 
     return Results.Ok();
     
+});
+
+app.MapPut("api/task/{id}", async ([FromServices] TaskContext dbContext, [FromBody] EF_Fundamentals.Models.Task task, [FromRoute] Guid id) =>
+{
+    var currentTask = dbContext.tasks.Find(id);
+
+    if(currentTask != null)
+    {
+        currentTask.CategoryId = task.CategoryId;
+        currentTask.Title = task.Title;
+        currentTask.PriorityTask = task.PriorityTask;
+        currentTask.Description = task.Description;
+
+        await dbContext.SaveChangesAsync();
+
+        return Results.Ok();
+    }   
+        
+    return Results.NotFound();
+    
+});
+
+app.MapDelete("api/task/{id}", async ([FromServices] TaskContext dbContext, [FromRoute] Guid id ) =>
+{
+    var currentTask = dbContext.tasks.Find(id);
+
+    if(currentTask != null)
+    {
+        dbContext.Remove(currentTask);
+        await dbContext.SaveChangesAsync();
+
+        return Results.Ok();
+    }  
+
+    return Results.NotFound();
+     
 });
 
 app.Run();
